@@ -1,12 +1,6 @@
 `crc32c` is a trivial program that wraps Go's SSE4.2 accelerated CRC-32C (Castagnoli) implementation.  I needed a fast checksum for amd64 that could be plonked on a number of platforms with minimal fuss.  The most obvious solutions available in FreeBSD base, and its package repository, were surprisingly slow.
 
-C/++ enthusiasts would probably be better served by https://github.com/google/crc32c[google/crc32c].
-
-`crc32c` does not implement a _check_ or _verify_ mode.  This behaviour may be emulated by plumbing output into a `diff` operand.
-
-Checksum computation is parallelised over logical CPUs when `crc32c` is invoked with multiple positional path arguments and `--parallel` set to some value greater than one.  Output from parallelised execution is written in non-deterministic order.  Pipe output through `sort -k2` for determinisitc order.
-
-(The machine used in the following perf comparisons was optimised for low power draw.  Turbo clocks were disabled.)
+`crc32c` does not implement a _check_ or _verify_ mode; plumb the output into `diff(1)`.
 
 ----
 # dmesg | grep ^CPU | head -n 1
@@ -19,7 +13,7 @@ FreeBSD 12.2-RELEASE-p6 amd64
 crc32c blob-1g  0.06s user 0.14s system 100% cpu 0.200 total
 ----
 
-rhash is slow:
+rhash is too slow.
 
 ----
 # time rhash --crc32c blob-1g
@@ -27,21 +21,21 @@ rhash is slow:
 rhash --crc32c blob-1g  0.62s user 0.15s system 99% cpu 0.768 total
 ----
 
-openssl is slow (SHA-1):
+openssl (SHA-1) is too slow.
 
 ----
 # time openssl sha1 blob-1g > /dev/null
 openssl sha1 blob-1g > /dev/null  1.16s user 0.11s system 99% cpu 1.267 total
 ----
 
-cksfv is slow (CRC-32):
+cksfv (CRC-32) is too slow.
 
 ----
 # time cksfv blob-1g > /dev/null
 cksfv blob-1g > /dev/null  2.13s user 0.28s system 99% cpu 2.415 total
 ----
 
-cksum is slow (CRC-32?):
+cksum (CRC-32?) is too slow.
 
 ----
 # time cksum blob-1g > /dev/null
