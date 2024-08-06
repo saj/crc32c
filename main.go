@@ -35,7 +35,7 @@ func main() {
 
 func sumStdin() error {
 	h := newHash()
-	_, err := io.CopyBuffer(h, os.Stdin, copybuf)
+	_, err := io.Copy(h, os.Stdin)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func sumPath(path string) error {
 	defer f.Close()
 
 	h := newHash()
-	_, err = io.CopyBuffer(h, f, copybuf)
+	_, err = io.Copy(h, f)
 	if err != nil {
 		return err
 	}
@@ -84,12 +84,6 @@ func init() {
 	prog = filepath.Base(os.Args[0])
 }
 
-// https://golang.org/src/hash/crc32/crc32_amd64.go
-const castagnoliK2 = 1344
-
-var (
-	copybuf = make([]byte, castagnoliK2*3*512)
-	outbuf  = make([]byte, 64)
-)
+var outbuf = make([]byte, 64)
 
 func newHash() hash.Hash32 { return crc32.New(crc32.MakeTable(crc32.Castagnoli)) }
